@@ -117,14 +117,19 @@ def negSamplingLossAndGradient(
     # wish to match the autograder and receive points!
     negSampleWordIndices = getNegativeSamples(outsideWordIdx, dataset, K)
     indices = [outsideWordIdx] + negSampleWordIndices
+    unique, counts = np.unique(indices, return_counts=True) 
+    cor = dict(zip(unique, counts))
+    mask = np.array([cor[el] for el in indices])
 
     ### YOUR CODE HERE (~10 Lines)
 
     ### Please use your implementation of sigmoid in here.
-    o_vector = outsideVectors[outsideWordIdx, :]
-    neg_samples_vec = outsideVectors[negSampleWordIndices, :]
+    # o_vector = outsideVectors[outsideWordIdx, :]
+    # neg_samples_vec = outsideVectors[negSampleWordIndices, :]
     U = -outsideVectors[indices, :]
     U[0] = -U[0]
+    # print(U[0] == outsideVectors[outsideWordIdx])
+    assert (U[0] == outsideVectors[outsideWordIdx]).all(), 'first row of matrix U is incorrect'
     Dot_product = U @ centerWordVec
     loss = -np.log(sigmoid(Dot_product)).sum()
     S = 1 - sigmoid(Dot_product)
@@ -132,11 +137,16 @@ def negSamplingLossAndGradient(
     gradOutsideVecs = S.reshape(-1, 1) * centerWordVec.reshape(1, -1) 
     gradOutsideVecs[0, :] *= -1
     gradOutsideVecs[0, :] = S[0] * centerWordVec
-    unique, counts = np.unique(indices, return_counts=True) 
-    cor = dict(zip(unique, counts))
-    mask = np.array([cor[el] for el in indices])
+    
     # print(mask)
     gradOutsideVecs *= mask.reshape(-1, 1)
+    # diff = negSampleWordIndices - outsideWordIdx
+    # nearest = argmin(np.abs(diff))
+    # if negSampleWordIndices[nearest] < outsideWordIdx:
+    #     nearest -=1
+    # if nearest > -1:
+    #     gradOutsideVecs[:nearest] = 
+    # print(gradOutsideVecs)
     # loss = -np.log(sigmoid(o_vector @ centerWordVec)) - np.sum(np.sigmoid(-neg_samples_vec @ centerWordVec), axis=0)
 
 
