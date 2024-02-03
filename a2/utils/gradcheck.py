@@ -44,13 +44,13 @@ def gradcheck_naive(f, x, gradientText):
 
         # Compare gradients
         reldiff = abs(numgrad - grad[ix]) / max(1, abs(numgrad), abs(grad[ix]))
-        print(numgrad, grad[ix], sep=' ')
-       #  if reldiff > 1e-5:
-       #      print("Gradient check failed for %s." % gradientText)
-       #      print("First gradient error found at index %s in the vector of gradients" % str(ix))
-       #      print("Your gradient: %f \t Numerical gradient: %f" % (
-       #          grad[ix], numgrad))
-       #      return
+       #  print(numgrad, grad[ix], sep=' ')
+        if reldiff > 1e-5:
+            print("Gradient check failed for %s." % gradientText)
+            print("First gradient error found at index %s in the vector of gradients" % str(ix))
+            print("Your gradient: %f \t Numerical gradient: %f" % (
+                grad[ix], numgrad))
+            return
 
         it.iternext() # Step to next dimension
 

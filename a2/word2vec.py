@@ -117,16 +117,24 @@ def negSamplingLossAndGradient(
     # wish to match the autograder and receive points!
     negSampleWordIndices = getNegativeSamples(outsideWordIdx, dataset, K)
     indices = [outsideWordIdx] + negSampleWordIndices
-    unique, counts = np.unique(indices, return_counts=True) 
+    unique, index, counts = np.unique(indices, return_counts=True, return_index=True) 
+    unique = np.array(unique[index.argsort()])
+    counts = np.array(counts[index.argsort()])
+    # print('indices {ind}, unique {un}'.format(ind=indices, un=unique) )
     cor = dict(zip(unique, counts))
-    mask = np.array([cor[el] for el in indices])
-
+    mask = np.array([cor[el] for el in unique])
+    # print(unique)
+    
+    print(indices)
+    print(unique)
+    print(cor)
+    print(mask)
     ### YOUR CODE HERE (~10 Lines)
 
     ### Please use your implementation of sigmoid in here.
     # o_vector = outsideVectors[outsideWordIdx, :]
     # neg_samples_vec = outsideVectors[negSampleWordIndices, :]
-    U = -outsideVectors[indices, :]
+    U = -outsideVectors[unique, :]
     U[0] = -U[0]
     # print(U[0] == outsideVectors[outsideWordIdx])
     assert (U[0] == outsideVectors[outsideWordIdx]).all(), 'first row of matrix U is incorrect'
@@ -134,12 +142,16 @@ def negSamplingLossAndGradient(
     loss = -np.log(sigmoid(Dot_product)).sum()
     S = 1 - sigmoid(Dot_product)
     gradCenterVec = -S.transpose() @ U
-    gradOutsideVecs = S.reshape(-1, 1) * centerWordVec.reshape(1, -1) 
-    gradOutsideVecs[0, :] *= -1
-    gradOutsideVecs[0, :] = S[0] * centerWordVec
-    
+    short_gradOutsideVecs = S.reshape(-1, 1) * centerWordVec.reshape(1, -1) 
+    short_gradOutsideVecs[0, :] *= -1
+    short_gradOutsideVecs[0, :] = S[0] * centerWordVec
+    short_gradOutsideVecs *= mask.reshape(-1, 1)
+    gradOutsideVecs = np.zeros(outsideVectors.shape)
+    for num, idx in enumerate(unique):
+        print(num)
+        gradOutsideVecs[idx, :] = short_gradOutsideVecs[num, :]
     # print(mask)
-    gradOutsideVecs *= mask.reshape(-1, 1)
+    
     # diff = negSampleWordIndices - outsideWordIdx
     # nearest = argmin(np.abs(diff))
     # if negSampleWordIndices[nearest] < outsideWordIdx:
